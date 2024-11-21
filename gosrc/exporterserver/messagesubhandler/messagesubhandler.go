@@ -186,7 +186,8 @@ func (msh *MessageSubHandler) SubscribeToUserIfHasSlots(userID uuid.UUID, subbed
 		return nil, false
 	}
 
-	messageChan := make(chan []byte, 1)
+	// store up to 10 messages before throwing away
+	messageChan := make(chan []byte, 10)
 	userSubs = append(userSubs, MessageSub{
 		subbedKeyMap: subbedKeyMap,
 		messageChan:  messageChan,
