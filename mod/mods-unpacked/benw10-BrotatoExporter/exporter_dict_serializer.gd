@@ -122,7 +122,9 @@ func encode_dict(dict: Dictionary) -> PoolByteArray:
 				val_serial_type = SERIAL_TYPE_FLOAT32
 			_:
 				pass
-		if not val_serial_type or val_serial_type != serial_type:
+		if not val_serial_type:
+			continue
+		if val_serial_type != serial_type:
 			serial_type = val_serial_type
 			
 			_dict_key_mapping_dict[key] = [key_mapping, serial_type]
