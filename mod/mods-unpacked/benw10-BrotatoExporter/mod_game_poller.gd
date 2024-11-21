@@ -62,9 +62,14 @@ func _on_scene_changed(scene: Node):
 		_in_run = false
 		_in_wave = false
 		# on title screen open notify that the 
-		emit_signal("diff_ready", EVENT_REASON_POLL, { "current_character": "-" })
+		_last_stats = Dictionary({ "current_character": "-" })
+		_last_effects = Dictionary()
+		emit_signal("diff_ready", EVENT_REASON_POLL, _last_stats)
 	if scene is Main:
 		reason_str = EVENT_REASON_STARTED_WAVE
+		# handle start of the game case
+		if _game_poll_timer.is_stopped():
+			_game_poll_timer.start()
 		_in_wave = true
 	if scene is BaseEndRun:
 		reason_str = EVENT_REASON_RUN_ENDED
@@ -95,12 +100,10 @@ var _cur_effects: Dictionary
 # returns dict that is flattened - all children are in the top-level obj
 func _get_stat_diff(player_index: int)->Dictionary:
 	var diff = Dictionary()
-	var use_stats = RunData.players_data[player_index].serialize()
-	if _in_wave:
-		use_stats = TempStats.player_stats[player_index]
-	_cur_stats = use_stats.duplicate(false)
+	_cur_stats = RunData.players_data[player_index].serialize().duplicate(false)
+
 	for key in _cur_stats:
-		# effects is special case as it 
+		# special case for effects for now. This includes the actual stats like luck but is flattened to the top for simplicity
 		if key == "effects":
 			# stats obj not deep duplicated
 			_cur_effects = _cur_stats[key].duplicate(false)
