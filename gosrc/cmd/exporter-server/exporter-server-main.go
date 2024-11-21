@@ -107,7 +107,10 @@ func main() {
 	requestLogger := log.New(requestLogWriter, "", 0)
 
 	go func() {
-		http.ListenAndServe(viper.GetString("pprof-serve-addr"), nil)
+		err := http.ListenAndServe(viper.GetString("pprof-serve-addr"), nil)
+		if err != nil {
+			log.Printf("pprof server error: %v", err)
+		}
 	}()
 
 	err := loadYAMLConfig()
