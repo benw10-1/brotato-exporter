@@ -11,6 +11,8 @@ COPY ./gosrc ./
 # include mod files for user mod gen
 COPY ./mod ./mod
 
+COPY ./default.yml ./
+
 RUN go build -o /exporter-server ./cmd/exporter-server
 RUN go build -o /mod-user-create ./cmd/mod-user-create
 
