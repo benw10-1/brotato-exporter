@@ -1,0 +1,64 @@
+{
+  "name": "BrotatoExporter",
+  "namespace": "benw10",
+  "version_number": "0.1.0",
+  "description": "Exports Brotato data over the wire",
+  "website_url": "https://github.com/benw10-1/brotato-exporter",
+  "dependencies": [],
+  "extra": {
+    "godot": {
+      "incompatibilities": [],
+      "authors": [
+        "benw10"
+      ],
+      "compatible_mod_loader_version": [
+        "3.0.0"
+      ],
+      "compatible_game_version": [
+        "0.6.1.6"
+      ],
+      "config_schema": {
+        "title": "BrotatoExporter Configuration",
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "server_connection": {
+            "type": "object",
+            "title": "Server Connection",
+            "properties": {
+              "host": {
+                "type": "string",
+                "title": "Host",
+                "default": "127.0.0.1"
+              },
+              "port": {
+                "type": "integer",
+                "title": "Port",
+                "default": 8080
+              },
+              "https": {
+                "type": "boolean",
+                "title": "HTTPS",
+                "default": false
+              },
+              "verify_host": {
+                "type": "boolean",
+                "title": "Verify Host - If you want to test HTTPS but don't want to make an actual cert",
+                "default": false
+              },
+              "auth_token": {
+                "type": "string",
+                "title": "Auth Token",
+                "default": "test"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
