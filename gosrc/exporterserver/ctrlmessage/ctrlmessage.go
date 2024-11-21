@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/benw10-1/brotato-exporter/brotatomod/brotatomodtypes"
 	"github.com/benw10-1/brotato-exporter/errutil"
 	"github.com/benw10-1/brotato-exporter/exporterserver/ctrlauth"
 	"github.com/benw10-1/brotato-exporter/exporterserver/exporterserverutil"
@@ -122,6 +123,12 @@ func (api *MessageAPI) receiveMessage(w http.ResponseWriter, r *http.Request, _ 
 
 				return errutil.NewStackError(err)
 			}
+
+			// on full timeseries message, reset the session state
+			if msg.MessageType == brotatomodtypes.MessageTypeTimeSeriesFull {
+				sessInfo.CurrentSessionState = make(map[string]json.RawMessage)
+			}
+
 			log.Printf("Received message: %+v", msg)
 			api.subHandler.StreamMessage(sess.UserID, sessInfo.CurrentSessionState, msg)
 		}
