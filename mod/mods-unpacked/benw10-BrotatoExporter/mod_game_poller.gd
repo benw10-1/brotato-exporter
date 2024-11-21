@@ -96,8 +96,8 @@ var _cur_effects: Dictionary
 func _get_stat_diff(player_index: int)->Dictionary:
 	var diff = Dictionary()
 	var use_stats = RunData.players_data[player_index].serialize()
-	#if _in_wave:
-	#	use_stats = TempStats.player_stats[player_index]
+	if _in_wave:
+		use_stats = TempStats.player_stats[player_index]
 	_cur_stats = use_stats.duplicate(false)
 	for key in _cur_stats:
 		# effects is special case as it 

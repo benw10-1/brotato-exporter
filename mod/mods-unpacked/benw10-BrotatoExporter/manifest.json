@@ -3,7 +3,7 @@
   "namespace": "benw10",
   "version_number": "0.1.0",
   "description": "Exports Brotato data over the wire",
-  "website_url": "https://github.com/benw10-1/brotato-exporter",
+  "website_url": "https://github.com/BrotatoMods/Brotato-Example-Mods",
   "dependencies": [],
   "extra": {
     "godot": {

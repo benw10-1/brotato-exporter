@@ -84,9 +84,6 @@ func _get_mapping_for_key(key: String, value):
 # -- value bytes (variable - either uintx or [uint32 {length}, uint8, uint8, ...]
 # TODO: make this more efficient by pre-allocating the arrays
 func encode_dict(dict: Dictionary) -> PoolByteArray:
-	if dict.size() < 1:
-		return PoolByteArray([])
-	
 	var header_buf = StreamPeerBuffer.new()
 	# header + dict byte count + 
 	header_buf.put_data(PoolByteArray([MESSAGE_DICT_MAPPING_HEADER, 0, 0]))
@@ -126,9 +123,13 @@ func encode_dict(dict: Dictionary) -> PoolByteArray:
 			_:
 				pass
 		if not val_serial_type or val_serial_type != serial_type:
-			var err_msg = "Mismatched type for key ("+key+")"
-			print("Error - ", err_msg)
-			continue
+			serial_type = val_serial_type
+			
+			_dict_key_mapping_dict[key] = [key_mapping, serial_type]
+			var error = _write_key_mapping_to_header(header_buf, key, key_mapping, serial_type)
+			if error != OK:
+				print("Got error code for mapping header - ", error)
+				continue
 		
 		if is_new:
 			var error = _write_key_mapping_to_header(header_buf, key, key_mapping, serial_type)
