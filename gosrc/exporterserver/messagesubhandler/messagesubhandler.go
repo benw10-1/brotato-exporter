@@ -12,6 +12,9 @@ import (
 	"github.com/google/uuid"
 )
 
+// AllKeyKey map key which if present will include all keys in the result.
+const AllKeyKey = "*"
+
 // MessageSub
 type MessageSub struct {
 	// subbedKeyMap map for checking if this sub should include a key in the result.
@@ -66,7 +69,7 @@ func (msh *MessageSubHandler) StreamMessage(userID uuid.UUID, updateMap map[stri
 		var jsonRepresentation []byte
 		// our own little JSON parser so we don't have to build a sep. map for each sub.
 		for i, sub := range userSubs {
-			if !sub.subbedKeyMap[kv.MappedKey] {
+			if !sub.subbedKeyMap[AllKeyKey] && !sub.subbedKeyMap[kv.MappedKey] {
 				continue
 			}
 

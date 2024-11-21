@@ -161,6 +161,11 @@ func (api *MessageAPI) subscribe(w http.ResponseWriter, r *http.Request, _ httpr
 			continue
 		}
 
+		if key == messagesubhandler.AllKeyKey {
+			subKeyMap = map[string]bool{messagesubhandler.AllKeyKey: true}
+			break
+		}
+
 		subKeyMap[key] = true
 	}
 
