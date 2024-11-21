@@ -1,0 +1,122 @@
+openapi: 3.0.3
+info:
+  title: Brotato Exporter
+  description: |-
+    This is for hitting the server-side of the Brotato Exporter mod. Use to pull down data from your server setup.
+    Supports websocket stream and full state for the client's current in-game values.
+  version: 0.1.0
+servers:
+  - url: '{protocol}://127.0.0.1:8080/api'
+    variables:
+      protocol:
+        enum:
+          - http
+          - ws
+        default: https
+tags:
+  - name: session-state
+    description: Get and subscribe to session state
+paths:
+  /message/current-state:
+    get:
+      tags:
+        - session-state
+      summary: Get current session state
+      description: Get current session state by auth key
+      operationId: current-state
+      responses:
+        '200':
+          description: Current State
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerState'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Active session not found
+        '500':
+          description: Failed to encode response
+      security:
+        - exporter_auth:
+          - "a"
+
+  /message/subscribe:
+    get:
+      tags:
+        - session-state
+      summary: Subscribe to changes in session state.
+      description: Subscribe to changes in session state by auth key. Disconnects after 5 minutes of no session activity - keep in-mind reconnect logic.
+      operationId: subscribe-current-state
+      parameters:
+        - name: current_character
+          in: query
+          description: Subscribe to changes to the current character. "-" if not in a run.
+          required: false
+          schema:
+            type: boolean
+        - name: current_health
+          in: query
+          description: Subscribe to changes to player health.
+          required: false
+          schema:
+            type: boolean
+        - name: effects_xxxx
+          in: query
+          description: Any number of effects in the game. Will subscribe to changes in this value. Some examples include "effects_stat_luck" and "effects_stat_percent_damage".
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '101':
+          description: Switching Protocols
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerState'
+        '400':
+          description: No keys provided
+        '401':
+          description: Unauthorized
+        '404':
+          description: Active session not found
+        '429':
+          description: Subscriber limit reached
+        '500':
+          description: Failed to encode message or failed to get user
+      security:
+        - exporter_auth:
+          - "a"
+components:
+  schemas:
+    PlayerState:
+      type: object
+      properties:
+        current_character:
+          type: string
+          example: character_one_arm
+          enum:
+            - character_loud
+            - character_lucky
+            - character_streamer
+            - "..."
+        current_health:
+          type: integer
+          format: int64
+          example: 10
+        effects_stat_luck:
+          type: number
+          format: float
+          example: 45
+        effects_stat_percent_damage:
+          type: number
+          format: float
+          example: 22.6
+        effects_xxxx:
+          type: string
+          example: Any number of effects in the game. Can be intx, float, or string.
+  securitySchemes:
+    exporter_auth:
+      type: http
+      scheme: bearer
+      bearerFormat: base64 crypto/rand bytes
