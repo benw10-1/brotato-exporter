@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -219,12 +220,17 @@ func (api *MessageAPI) subscribe(w http.ResponseWriter, r *http.Request, _ httpr
 				}
 				timeoutTimer.Reset(activityTimeout)
 			case <-timeoutTimer.C:
+				err := conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf(`{"error_code": %d, "message": "Timed out after (%s)"}`, http.StatusRequestTimeout, activityTimeout.String())))
+				if err != nil {
+					return errutil.NewStackError(err)
+				}
+
 				return errors.New("timer timeout")
 			}
 		}
 	}()
 	if connErr != nil {
-		log.Printf("ctrlmessage.MessageAPI.subscribe: conn error: %v", connErr)
+		log.Printf("ctrlmessage.MessageAPI.subscribe: conn error - %v", connErr)
 	}
 }
 
