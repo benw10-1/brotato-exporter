@@ -34,5 +34,5 @@ mkdir -p "$VOLUME_PATH/log"
 # start the server and detach
 docker run -d --name brotato-exporter-server \
   -v ${VOLUME_PATH}:/var/brotatoexporter -v ${VOLUME_PATH}/log:/var/log \
-  -p 8080:8080 -p 8081:8081 \
+  -p 8081:8081 -p 8082:8082 \
   benwirth10/brotato-exporter:$TAG /exporter-server

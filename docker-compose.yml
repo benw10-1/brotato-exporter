@@ -3,8 +3,8 @@ services:
   brotato-exporter:
     build: .
     ports:
-      - 8080:8080 # api
-      - 8081:8081 # pprof
+      - 8081:8081 # api
+      - 8082:8082 # pprof
     volumes:
       - ./var-brotatoexporter:/var/brotatoexporter
       - ./var-brotatoexporter/log:/var/log

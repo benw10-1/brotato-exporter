@@ -6,7 +6,7 @@ info:
     Supports websocket stream and full state for the client's current in-game values.
   version: 0.1.0
 servers:
-  - url: '{protocol}://127.0.0.1:8080/api'
+  - url: '{protocol}://127.0.0.1:8081/api'
     variables:
       protocol:
         enum:

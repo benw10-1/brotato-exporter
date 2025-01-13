@@ -41,7 +41,7 @@ func prompts() {
 
 	prompt = &survey.Input{
 		Message: "Port",
-		Default: "8080",
+		Default: "8081",
 	}
 	err = survey.AskOne(prompt, &port)
 	if err != nil {

@@ -1,5 +1,5 @@
-serve-addr: ":8080" 
-pprof-serve-addr: ":8081"
+serve-addr: ":8081" 
+pprof-serve-addr: ":8082"
 
 # should be generated in override - if want to use own set it in the override config file
 jwt-auth-signing-key: ""

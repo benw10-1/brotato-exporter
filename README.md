@@ -21,7 +21,7 @@ Mod which exports game-state data via websocket connection.
 1. Install [Docker](https://docs.docker.com/engine/install/).
 2. Pull the [image from Dockerhub](https://hub.docker.com/repository/docker/benwirth10/brotato-exporter/general).
 3. Run the `mod-user-create.sh` script to interactively setup the mod config. Do this before starting the server.
-4. Run the `run-server.sh` script to start the server on port 8080.
+4. Run the `run-server.sh` script to start the server on port 8081.
 
 You do not have to use the `run-server.sh` script if you want to serve on other ports. See [default.yml](./default.yml) for config options.
 
