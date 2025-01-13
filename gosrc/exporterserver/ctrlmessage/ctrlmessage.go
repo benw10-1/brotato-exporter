@@ -2,6 +2,7 @@ package ctrlmessage
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -201,6 +202,31 @@ func (api *MessageAPI) subscribe(w http.ResponseWriter, r *http.Request, _ httpr
 		_ = conn.Close()
 	}(conn)
 
+	wsCtx, cancelWSCtx := context.WithCancel(context.Background())
+	defer cancelWSCtx()
+
+	go func() {
+		for {
+			select {
+			case <-wsCtx.Done():
+				return
+			default:
+			}
+
+			_, _, err := conn.ReadMessage()
+			if err != nil {
+				var closeErr *websocket.CloseError
+				if errors.As(err, &closeErr) {
+					log.Printf("ctrlmessage.MessageAPI.subscribe: connection closed with code (%d) and text (%s)", closeErr.Code, closeErr.Text)
+					cancelWSCtx()
+					return
+				}
+
+				log.Printf("ctrlmessage.MessageAPI.subscribe: unexpected error - %v", err)
+			}
+		}
+	}()
+
 	connErr := func() error {
 		// if no activity after 5 minutes, close the connection
 		// if the caller is still there they can reconnect
@@ -208,6 +234,8 @@ func (api *MessageAPI) subscribe(w http.ResponseWriter, r *http.Request, _ httpr
 
 		for {
 			select {
+			case <-wsCtx.Done():
+				return wsCtx.Err()
 			case msg, ok := <-messageChan:
 				if !ok {
 					return nil
