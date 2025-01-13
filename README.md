@@ -29,7 +29,10 @@ Running locally use the same `mod-user-create.sh` script, but run the compose in
 
 ### Client setup
 
-After running the `mod-user-create.sh` there will be a file called `user-mod.zip` in the var folder. Navigate to the workshop folder located usually at `%steamapps%/workshop/content/1942280` (ex. `/d/Steam/steamapps/workshop/content/1942280`). Create a folder named `exporter` (any name works) and place `user-mod.zip` in the folder you just created.
+1. Subscribe to the mod [on Steam](https://steamcommunity.com/sharedfiles/filedetails/?id=3406507312)
+2. Run `mod-user-create.sh` and either copy the `user-mod.zip` or `connect-config.json`.
+3. Navigate to the workshop folder located usually at `%steamapps%/workshop/content/1942280/3406507312` (ex. `/d/Steam/steamapps/workshop/content/1942280/3406507312`)
+4. If you copied `user-mod.zip` just replace the zip file in the `.../1942280/340650731` folder with the `user-mod.zip` folder. If you copied the `connect-config.json` file instead, you need to edit the zip file and place it in the `mods-unpacked/benw10-BrotatoExporter` folder.
 
 If the user was created to point at the right address you should be able to just run the game and have it sending data.
 
