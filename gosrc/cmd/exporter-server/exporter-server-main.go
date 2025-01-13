@@ -131,7 +131,7 @@ func main() {
 	authAPI := ctrlauth.NewAuthAPI([]byte(viper.GetString("jwt-auth-signing-key")), sessionInfoMap, exporterStore)
 	handlerList = append(handlerList, authAPI)
 
-	subHandler := messagesubhandler.NewMessageSubHandler(appCtx, sessionInfoMap, time.Second*10)
+	subHandler := messagesubhandler.NewMessageSubHandler(appCtx, sessionInfoMap, time.Minute*10)
 
 	messageAPI := ctrlmessage.NewMessageAPI(sessionInfoMap, exporterStore, subHandler)
 	handlerList = append(handlerList, messageAPI)
