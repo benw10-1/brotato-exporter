@@ -130,7 +130,10 @@ func (api *MessageAPI) receiveMessage(w http.ResponseWriter, r *http.Request, _ 
 				sessInfo.CurrentSessionState = make(map[string]json.RawMessage)
 			}
 
-			log.Printf("Received message: %+v", msg)
+			if msg.MessageType != brotatomodtypes.MessageTypeKeepAlive {
+				log.Printf("Received message: %+v", msg)
+			}
+
 			api.subHandler.StreamMessage(sess.UserID, sessInfo.CurrentSessionState, msg)
 		}
 	}())

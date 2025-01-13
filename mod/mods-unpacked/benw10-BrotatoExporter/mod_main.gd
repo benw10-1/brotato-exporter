@@ -78,22 +78,12 @@ func _on_mod_exporter_disconnect():
 
 func _on_mod_exporter_err(err_str: String, err_code: int):
 	ModLoaderLog.info("Got error from exporter - (%s) - code (%d)" % [err_str,err_code], LOG_INFO)
-	if err_code == ModExporter.CONNECTION_ERROR:
-		_connect_exporter()
+	_connect_exporter()
 
 # send new full message on authentication. This is so the server can be restarted without needing to
 # worry about
 func _on_mod_exporter_authenticated():
 	_dict_serializer.clear()
-	
-	#var diff: Dictionary = _game_poller.full_stat_dict(0)
-	
-	#ModLoaderLog.info("Connect" + ": Diff - " + JSON.print(diff), LOG_INFO)
-	
-	#var msg: ExporterMessage = ExporterMessage.new()
-	#msg.set_time_series_full_message(_dict_serializer, ExporterMessage.MESSAGE_REASON_CONNECT, diff)
-	
-	#_mod_exporter.enqueue_message(msg)
 	
 func _connect_exporter():
 	_dict_serializer.clear()

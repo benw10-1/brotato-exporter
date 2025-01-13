@@ -1,14 +1,19 @@
 package messagesubhandler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
 	"sync"
+	"time"
 
 	"log"
 
 	"github.com/benw10-1/brotato-exporter/brotatomod/brotatomodtypes"
+	"github.com/benw10-1/brotato-exporter/brotatomod/brotatoserial"
+	"github.com/benw10-1/brotato-exporter/errutil"
+	"github.com/benw10-1/brotato-exporter/exporterserver/ctrlauth"
 	"github.com/google/uuid"
 )
 
@@ -24,27 +29,97 @@ type MessageSub struct {
 
 // MessageSubHandler
 type MessageSubHandler struct {
-	userSubsMap map[uuid.UUID][]MessageSub
+	lastMessageReceived map[uuid.UUID]time.Time
+	userSubsMap         map[uuid.UUID][]MessageSub
+	sessionInfoMap      *ctrlauth.SessionInfoMap // temp hack for resetting state after "disconnect". To avoid having to do a rework already :/
+	maxIdleDuration     time.Duration
 	// rwmu control reads and writes to userSubsMap
 	rwmu sync.RWMutex
 }
 
 // NewMessageSubHandler
-func NewMessageSubHandler() *MessageSubHandler {
-	return &MessageSubHandler{
-		userSubsMap: make(map[uuid.UUID][]MessageSub),
+func NewMessageSubHandler(ctx context.Context, sessionInfoMap *ctrlauth.SessionInfoMap, maxIdleDuration time.Duration) *MessageSubHandler {
+	msh := &MessageSubHandler{
+		lastMessageReceived: make(map[uuid.UUID]time.Time),
+		userSubsMap:         make(map[uuid.UUID][]MessageSub),
+		sessionInfoMap:      sessionInfoMap,
+		maxIdleDuration:     maxIdleDuration,
+	}
+	go func() {
+		err := msh.sweepIdle(ctx)
+		if err != nil {
+			log.Printf("messagesubhandler.sweepIdle: returned (%v)", err)
+		}
+	}()
+
+	return msh
+}
+
+// sweepIdle
+func (msh *MessageSubHandler) sweepIdle(ctx context.Context) error {
+	ticker := time.NewTicker(msh.maxIdleDuration)
+	for {
+		select {
+		case <-ticker.C:
+			func() {
+				msh.rwmu.Lock()
+				defer msh.rwmu.Unlock()
+
+				deleteKeys := make([]uuid.UUID, 0, len(msh.lastMessageReceived))
+
+				for userID, lastKeepAliveTime := range msh.lastMessageReceived {
+					if time.Since(lastKeepAliveTime) <= msh.maxIdleDuration {
+						continue
+					}
+
+					userSubs := msh.userSubsMap[userID]
+					for i, sub := range userSubs {
+						select {
+						case sub.messageChan <- []byte("{}"):
+						default:
+							log.Printf("messagesubhandler.MessageSubHandler.StreamMessage: messageChan (%d) full for (%s), dropping message", i, userID)
+						}
+					}
+
+					// reset session state on disconnect as well
+					sessInfo, ok := msh.sessionInfoMap.Load(userID)
+					if !ok {
+						log.Printf("messagesubhandler.MessageSubHandler.StreamMessage: unexpected missing session for (%s)", userID)
+						continue
+					}
+
+					sessInfo.Lock()
+
+					sessInfo.MessageReader = brotatoserial.NewMessageReader(nil, make([]byte, 1024))
+					sessInfo.CurrentSessionState = make(map[string]json.RawMessage)
+
+					sessInfo.Unlock()
+
+					deleteKeys = append(deleteKeys, userID)
+				}
+
+				for _, deleteKey := range deleteKeys {
+					delete(msh.lastMessageReceived, deleteKey)
+				}
+			}()
+		case <-ctx.Done():
+			return errutil.NewStackError(ctx.Err())
+		}
 	}
 }
 
 // StreamMessage
 // updateMap will be written to with any key values read - quick hack for now
 func (msh *MessageSubHandler) StreamMessage(userID uuid.UUID, updateMap map[string]json.RawMessage, message brotatomodtypes.ExporterMessage) {
+	msh.rwmu.Lock()
+	defer func() {
+		msh.lastMessageReceived[userID] = time.Now()
+
+		msh.rwmu.Unlock()
+	}()
 	if message.MessageBody == nil || message.MessageBody.Size() == 0 {
 		return
 	}
-
-	msh.rwmu.RLock()
-	defer msh.rwmu.RUnlock()
 
 	userSubs := msh.userSubsMap[userID]
 
@@ -76,9 +151,9 @@ func (msh *MessageSubHandler) StreamMessage(userID uuid.UUID, updateMap map[stri
 			subMsgs[i] = append(subMsgs[i], '"')
 			subMsgs[i] = append(subMsgs[i], kv.MappedKey...)
 			subMsgs[i] = append(subMsgs[i], '"', ':')
-			startIdx := len(subMsgs[i])
-			subMsgs[i] = kv.AppendJSON(subMsgs[i])
 			if jsonRepresentation == nil {
+				startIdx := len(subMsgs[i])
+				subMsgs[i] = kv.AppendJSON(subMsgs[i])
 				jsonRepresentation = subMsgs[i][startIdx:len(subMsgs[i])]
 			} else {
 				subMsgs[i] = append(subMsgs[i], jsonRepresentation...)

@@ -51,6 +51,7 @@ static func status_str(v: int) -> String:
 	return ""
 	
 func connect_to_host(host: String, port: int, use_https: bool = false, verify_host: bool = false) -> void:
+	_authenticated = false
 	# Reset status so we can tell if it changes to error again.
 	_status = _client.STATUS_DISCONNECTED
 	var error: int = _client.connect_to_host(host, port, use_https, verify_host)
@@ -77,6 +78,8 @@ func _ready() -> void:
 	_status = _client.get_status()
 	_last_frame_processed_ticks = Time.get_ticks_msec() - _poll_freq
 	_body_buf.resize(1024)
+	
+	var _error_exited_tree = self.connect("tree_exited", self, "_on_tree_exited")
 
 var _empty_array: Array = [null, null, null, null, null, null, null, null, null, null]
 
@@ -135,6 +138,7 @@ func _process(_delta: float) -> void:
 	if !_authenticated:
 		_error = _start_authenticate()
 	else:
+		enqueue_message(ExporterMessage.make_keep_alive_message())
 		_error = _start_send_queue()
 	# do backoff on error
 	if _error != OK:
