@@ -124,16 +124,18 @@ func encode_dict(dict: Dictionary) -> PoolByteArray:
 				pass
 		if not val_serial_type:
 			continue
-		if val_serial_type != serial_type:
-			serial_type = val_serial_type
-			
-			_dict_key_mapping_dict[key] = [key_mapping, serial_type]
+		
+		if is_new:
 			var error = _write_key_mapping_to_header(header_buf, key, key_mapping, serial_type)
 			if error != OK:
 				print("Got error code for mapping header - ", error)
 				continue
-		
-		if is_new:
+			
+			new_key_count = new_key_count + 1
+		elif val_serial_type != serial_type:
+			serial_type = val_serial_type
+			
+			_dict_key_mapping_dict[key] = [key_mapping, serial_type]
 			var error = _write_key_mapping_to_header(header_buf, key, key_mapping, serial_type)
 			if error != OK:
 				print("Got error code for mapping header - ", error)

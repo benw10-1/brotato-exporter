@@ -54,7 +54,8 @@ func _on_scene_changed(scene: Node):
 	var reason_str: String
 	if scene is BaseShop:
 		reason_str = EVENT_REASON_ENTERED_SHOP
-		_game_poll_timer.start()
+		if _game_poll_timer.is_stopped():
+			_game_poll_timer.start()
 		_in_run = true
 		_in_wave = false
 	if scene is TitleScreen:
@@ -71,6 +72,7 @@ func _on_scene_changed(scene: Node):
 		if _game_poll_timer.is_stopped():
 			_game_poll_timer.start()
 		_in_wave = true
+		_in_run = true
 	if scene is BaseEndRun:
 		reason_str = EVENT_REASON_RUN_ENDED
 		_game_poll_timer.stop()
